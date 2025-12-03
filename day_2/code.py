@@ -2,7 +2,7 @@
 #Day 2
 #Coded by Bigmikko in Python
 
-#Amount of dial values and where the dial starts
+#The different input file locations
 TEST_INPUT_FILE = "day_2/test_input.txt"
 INPUT_FILE = "day_2/input.txt"
 
@@ -34,17 +34,18 @@ def checkValue(value):
             subValues = []
 
             #Takes each substring of length i
-            subValues = [value[j:j+i] for j in range(0, len(value), i)]
+            for j in range(0, len(value), i):
+                subValues.append(value[j:j+i])
 
             #Checks each entry in subValue against eachother, if they are all the same, return the whole value
-            for k in range(0, len(subValues) - 1):
+            for j in range(0, len(subValues) - 1):
 
                 #If it's not a duplicate, skip that step
-                if subValues[k] != subValues[k+1]:
+                if subValues[j] != subValues[j+1]:
                     break
 
                 #If at the end of the current length numbers being compared and they have all matched so far, return number
-                elif k == len(subValues) - 2:
+                elif j == len(subValues) - 2:
                     return int(value)
             
     return 0

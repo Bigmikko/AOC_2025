@@ -5,6 +5,8 @@
 #Amount of dial values and where the dial starts
 DIAL_VALUES = 100
 DIAL_START_VALUE = 50
+
+#Switch between test input and the problem parts
 TEST_INPUT_FILE = "day_1/test_input.txt"
 INPUT_FILE = "day_1/input.txt"
 
