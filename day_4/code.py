@@ -2,6 +2,8 @@
 #Day 4
 #Coded by Bigmikko in Python
 
+import time
+
 #The different input file locations
 TEST_INPUT_FILE = "day_4/test_input.txt"
 INPUT_FILE = "day_4/input.txt"
@@ -21,9 +23,9 @@ def adjacencyCorrection(x, y, adjacencyGrid):
         startX = x
 
     if x < len(adjacencyGrid) - 1:
-        endX = x + 2
-    else:
         endX = x + 1
+    else:
+        endX = x
 
     if y > 0:
         startY = y - 1
@@ -31,15 +33,74 @@ def adjacencyCorrection(x, y, adjacencyGrid):
         startY = y
 
     if y < len(adjacencyGrid[x]) - 1:
-        endY = y + 2
-    else:
         endY = y + 1
+    else:
+        endY = y
 
     #Adds 1 to all the valid neighbours
-    for i in range(startX, endX):
-        for j in range(startY, endY):
+    for i in range(startX, endX + 1):
+        for j in range(startY, endY + 1):
             if not (i == x and j == y):
                 adjacencyGrid[i][j] += 1
+
+#Made for variable lengths of the different rows
+def oeadjacencyCorrection(x, y, adjacencyGrid):
+    validPositions = []
+    validPos = []
+
+    #Individually checks each neighbour if they are a valid point, if it is, adds it to a list of valid positions
+    if x > 0 and y < len(adjacencyGrid[x - 1]):
+        validPos.append(x - 1)
+        validPos.append(y)
+        validPositions.append(validPos)
+        validPos = []
+
+    if x < len(adjacencyGrid) - 1 and y < len(adjacencyGrid[x + 1]):
+        validPos.append(x + 1)
+        validPos.append(y)
+        validPositions.append(validPos)
+        validPos = []
+    
+    if y > 0:
+        validPos.append(x)
+        validPos.append(y - 1)
+        validPositions.append(validPos)
+        validPos = []
+
+    if y < len(adjacencyGrid[x]) - 1:
+        validPos.append(x)
+        validPos.append(y + 1)
+        validPositions.append(validPos)
+        validPos = []
+
+    if x > 0 and y > 0 and y < len(adjacencyGrid[x - 1]):
+        validPos.append(x - 1)
+        validPos.append(y - 1)
+        validPositions.append(validPos)
+        validPos = []
+
+    if x > 0 and y < len(adjacencyGrid[x - 1]) - 1:
+        validPos.append(x - 1)
+        validPos.append(y + 1)
+        validPositions.append(validPos)
+        validPos = []
+    
+    if x < len(adjacencyGrid) - 1 and y > 0  and y < len(adjacencyGrid[x + 1]):
+        validPos.append(x + 1)
+        validPos.append(y - 1)
+        validPositions.append(validPos)
+        validPos = []
+
+    if x < len(adjacencyGrid) - 1 and y < len(adjacencyGrid[x + 1]) - 1:
+        validPos.append(x + 1)
+        validPos.append(y + 1)
+        validPositions.append(validPos)
+        validPos = []
+
+    #Uses the list validPositions to adds 1 to each of those positions
+    for pos in validPositions:
+        adjacencyGrid[pos[0]][pos[1]] += 1
+    
 
 
 #Creates a duplicate sized matrix of grid that contains info about the amount of neighbours surronding each entry
@@ -58,7 +119,6 @@ def createAdjacencyGrid(grid):
         for y in range(0, len(grid[x])):
             if grid[x][y] == '@':
                 adjacencyCorrection(x, y, adjacencyGrid)
-
     return adjacencyGrid
 
 
@@ -88,7 +148,7 @@ def calculateAvailableRolls(grid):
 
 
 #Main function starts here
-
+start = time.time()
 #Switches between the test and normal inputs
 if TEST_INPUT == True:
     file = TEST_INPUT_FILE
@@ -108,4 +168,7 @@ with open(file) as f:
         line = []
 
 sum = calculateAvailableRolls(grid)
+end = time.time()
+
 print(sum)
+print("Time to execute: ", end - start)
