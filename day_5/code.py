@@ -10,7 +10,7 @@ INPUT_FILE = "day_5/input.txt"
 PART2 = True
 TEST_INPUT = False
 
-#FOR PART2, function takes a range and returns the amount of unique ids in those ranges
+#FOR PART2, function takes a list of ranges and returns the amount of unique ids in those ranges
 def getRanges(ranges):
     i = 0
 
