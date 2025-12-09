@@ -109,26 +109,26 @@ def _createAllowedTiles(tiles):
 def _checkAndFillShapes(grid):
     for i in range(grid.shape[0]):
         for j in range(grid.shape[1]):
-            if grid[i, j] in ("X", "#"):
+            if grid[i, j] in True:
                 if j < grid.shape[1]:
                     for k in range(j + 1, grid.shape[1]):
-                        if grid[i, k] in ("X", "#"):
+                        if grid[i, k] in True:
                             for l in range(k - 1, j, -1):
-                                if grid[i, l] in ("X", "#"):
+                                if grid[i, l] in True:
                                     break
                                 else:
-                                    grid[i, l] = "O"
+                                    grid[i, l] = True
 
 def _checkAndDrawGreenTiles(tile, grid):
     for i in range(tile[1] - 1, -1, -1):
-        if grid[i, tile[0]] == "#":
+        if grid[i, tile[0]] == True:
             for j in range(i + 1, tile[1]):
-                grid[j, tile[0]] = "X"
+                grid[j, tile[0]] = True
 
     for i in range(tile[0] + 1, grid.shape[1]):
-        if grid[tile[1], i] == "#":
+        if grid[tile[1], i] == True:
             for j in range(i - 1, tile[0], -1):
-                grid[tile[1], j] = "X"
+                grid[tile[1], j] = True
 
         
 def _createAllowedGrid(tiles):
@@ -154,10 +154,10 @@ def _createAllowedGrid(tiles):
     largest_x += 1
     largest_y += 1
 
-    grid = np.full([largest_y - smallest_y, largest_x - smallest_x], ".", dtype = str)
+    grid = np.full([largest_y - smallest_y, largest_x - smallest_x], False, dtype = bool)
     
     for tile in tiles:
-        grid[tile[1], tile[0]] = "#"
+        grid[tile[1], tile[0]] = True
 
     for tile in tiles:
         _checkAndDrawGreenTiles(tile, grid)
