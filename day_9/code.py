@@ -7,7 +7,7 @@ TEST_INPUT_FILE = "day_9/test_input.txt"
 INPUT_FILE = "day_9/input.txt"
 
 # Switch between test input and the problem parts
-PART2 = False
+PART2 = True
 TEST_INPUT = False
 
 # A function that takes 2 points and calculates the area between the two points 
@@ -16,21 +16,128 @@ def _getArea(p1, p2):
 
     return (abs(p1[0] - p2[0]) + 1) * (abs(p1[1] - p2[1]) + 1)
 
+def _addTilesToGrid(allowed_grid, tile1, tile2):
+    if tile1[0] == tile2[0]:
+        if tile1[1] > tile2[1]:
+            for i in range(tile2[1], tile1[1] + 1):
+                pos = []
+                pos.append(tile1[0])
+                pos.append(i)
+                #if pos not in allowed_grid:
+                allowed_grid.append(pos)
+        else:
+            for i in range(tile1[1], tile2[1] + 1):
+                pos = []
+                pos.append(tile1[0])
+                pos.append(i)
+                #if pos not in allowed_grid:
+                allowed_grid.append(pos)
+
+    elif tile1[1] == tile2[1]:
+        if tile1[0] > tile2[0]:
+            for i in range(tile2[0], tile1[0] + 1):
+                pos = []
+                pos.append(i)
+                pos.append(tile1[1])
+                #if pos not in allowed_grid:
+                allowed_grid.append(pos)
+        else:
+            for i in range(tile1[0], tile2[0] + 1):
+                pos = []
+                pos.append(i)
+                pos.append(tile1[1])
+                #if pos not in allowed_grid:
+                allowed_grid.append(pos)
+
+def _createAllowedTiles(tiles):
+    allowed_tiles = []
+    for i in range(len(tiles)):
+        for j in range(i + 1, len(tiles)):
+            _addTilesToGrid(allowed_tiles, tiles[i], tiles[j])
+
+    allowed_tiles.sort()
+    i = 1
+    while(i < len(allowed_tiles)):
+    #for i in range(len(allowed_tiles) - 1):
+        if allowed_tiles[i - 1] == allowed_tiles[i]:
+            allowed_tiles.pop(i - 1)
+        i += 1
+
+    current_col = -1
+    allowed_tiles_ranges = []
+    tile_range = []
+    for i in range(len(allowed_tiles)):
+        if i == 0:
+            range_start = allowed_tiles[i][1]
+            current_col = allowed_tiles[i][0]
+
+        elif allowed_tiles[i][0] > current_col:
+            range_end = allowed_tiles[i - 1][1]
+            
+            tile_range.append(current_col)
+            tile_range.append(range_start)
+            tile_range.append(range_end)
+            allowed_tiles_ranges.append(tile_range)
+            tile_range = []
+            current_col = allowed_tiles[i][0]
+
+            range_start = allowed_tiles[i][1]
+        elif i == len(allowed_tiles) - 1:
+            range_end = allowed_tiles[i][1]
+            tile_range.append(current_col)
+            tile_range.append(range_start)
+            tile_range.append(range_end)
+            allowed_tiles_ranges.append(tile_range)
+
+        elif allowed_tiles[i][1] != allowed_tiles[i - 1][1] + 1 and allowed_tiles[i + 1][0] == allowed_tiles[i][0] and allowed_tiles[i - 1][1] == allowed_tiles[i][1]:
+            range_end = allowed_tiles[i - 1][1]
+            
+            tile_range.append(current_col)
+            tile_range.append(range_start)
+            tile_range.append(range_end)
+            allowed_tiles_ranges.append(tile_range)
+            tile_range = []
+
+            range_start = allowed_tiles[i][1]
+
+    return allowed_tiles_ranges
+
+def _checkRectangleAllowed(p1, p2, allowed_tiles):
+    p3 = p1[0], p2[1]
+    p4 = p2[0], p1[1]
+
+    for i in range(len(allowed_tiles)):
+        if p3[0] == allowed_tiles[i][0]:
+            if p3[1] in range(allowed_tiles[i][1], allowed_tiles[i][2] + 1):
+                for j in range(len(allowed_tiles)):
+                    if p4[0] == allowed_tiles[j][0]:
+                        if p4[1] in range(allowed_tiles[j][1], allowed_tiles[j][2] + 1):
+                            return True
+                        
+    return False
+
 # A function that takes the position of 1x1 tiles and checks the largest rectangle possible out of the points in the tiles positions
 def largestRectangle(tiles):
 
     # Saves the current largest area and tiles in possible_tiles (area, tile1, tile2)
     possible_tiles = [-1, -1, -1]
-
+    allowed_tiles = _createAllowedTiles(tiles)
     # Loops through all tiles and compares them to all other tiles to get the largest area possible
     for i in range(len(tiles)):
         for j in range(i + 1, len(tiles)):
+ 
+            if PART2:
+                rectangle_allowed = _checkRectangleAllowed(tiles[i], tiles[j], allowed_tiles)
+
+                if not rectangle_allowed:
+                    break
+                        
 
             # Get the area from the _getArea() function, if it's bigger than the current largest area, save the new one in possible_tiles
             area = _getArea(tiles[i], tiles[j])
             if(area > possible_tiles[0]):
                 possible_tiles = (area, tiles[i], tiles[j])
-
+    print(possible_tiles)
     return possible_tiles[0]
 
 
