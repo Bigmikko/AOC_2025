@@ -2,6 +2,10 @@
 # Day 9
 # Coded by Bigmikko in Python
 
+
+# Imports
+import numpy as np
+
 # The different input file locations
 TEST_INPUT_FILE = "day_9/test_input.txt"
 INPUT_FILE = "day_9/input.txt"
@@ -102,11 +106,70 @@ def _createAllowedTiles(tiles):
 
     return allowed_tiles_ranges
 
-def _checkRectangleAllowed(p1, p2, allowed_tiles):
-    p3 = p1[0], p2[1]
-    p4 = p2[0], p1[1]
+def _checkAndFillShapes(grid):
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            if grid[i, j] in ("X", "#"):
+                if j < grid.shape[1]:
+                    for k in range(j + 1, grid.shape[1]):
+                        if grid[i, k] in ("X", "#"):
+                            for l in range(k - 1, j, -1):
+                                if grid[i, l] in ("X", "#"):
+                                    break
+                                else:
+                                    grid[i, l] = "O"
 
-    for i in range(len(allowed_tiles)):
+def _checkAndDrawGreenTiles(tile, grid):
+    for i in range(tile[1] - 1, -1, -1):
+        if grid[i, tile[0]] == "#":
+            for j in range(i + 1, tile[1]):
+                grid[j, tile[0]] = "X"
+
+    for i in range(tile[0] + 1, grid.shape[1]):
+        if grid[tile[1], i] == "#":
+            for j in range(i - 1, tile[0], -1):
+                grid[tile[1], j] = "X"
+
+        
+def _createAllowedGrid(tiles):
+    smallest_x = 9999999999
+    smallest_y = 9999999999
+    largest_x = -1
+    largest_y = -1
+
+    for tile in tiles:
+        if tile[0] < smallest_x:
+            smallest_x = tile[0]
+        if tile[1] < smallest_y:
+            smallest_y = tile[1]
+        if tile[0] > largest_x:
+            largest_x = tile[0]
+        if tile[1] > largest_y:
+            largest_y = tile[1]
+
+    for tile in tiles:
+        tile[0] -= smallest_x
+        tile[1] -= smallest_y
+
+    largest_x += 1
+    largest_y += 1
+
+    grid = np.full([largest_y - smallest_y, largest_x - smallest_x], ".", dtype = str)
+    
+    for tile in tiles:
+        grid[tile[1], tile[0]] = "#"
+
+    for tile in tiles:
+        _checkAndDrawGreenTiles(tile, grid)
+        _checkAndFillShapes(grid)
+
+    return grid
+
+def _checkRectangleAllowed(p1, p2, grid):
+    p3 = p1[1], p2[0]
+    p4 = p2[1], p1[0]
+
+    """for i in range(len(allowed_tiles)):
         if p3[0] == allowed_tiles[i][0]:
             if p3[1] in range(allowed_tiles[i][1], allowed_tiles[i][2] + 1):
                 for j in range(len(allowed_tiles)):
@@ -114,30 +177,36 @@ def _checkRectangleAllowed(p1, p2, allowed_tiles):
                         if p4[1] in range(allowed_tiles[j][1], allowed_tiles[j][2] + 1):
                             return True
                         
-    return False
+    return False """
+    if grid[p3] not in (".") and grid[p4] not in ("."):
+        return True
+    else:
+        return False
+
 
 # A function that takes the position of 1x1 tiles and checks the largest rectangle possible out of the points in the tiles positions
 def largestRectangle(tiles):
 
     # Saves the current largest area and tiles in possible_tiles (area, tile1, tile2)
     possible_tiles = [-1, -1, -1]
-    allowed_tiles = _createAllowedTiles(tiles)
+    #allowed_tiles = _createAllowedTiles(tiles)
+    grid = _createAllowedGrid(tiles)
+
     # Loops through all tiles and compares them to all other tiles to get the largest area possible
     for i in range(len(tiles)):
         for j in range(i + 1, len(tiles)):
  
             if PART2:
-                rectangle_allowed = _checkRectangleAllowed(tiles[i], tiles[j], allowed_tiles)
+                rectangle_allowed = _checkRectangleAllowed(tiles[i], tiles[j], grid)
 
                 if not rectangle_allowed:
                     break
                         
-
             # Get the area from the _getArea() function, if it's bigger than the current largest area, save the new one in possible_tiles
             area = _getArea(tiles[i], tiles[j])
             if(area > possible_tiles[0]):
                 possible_tiles = (area, tiles[i], tiles[j])
-    print(possible_tiles)
+
     return possible_tiles[0]
 
 
@@ -156,6 +225,8 @@ with open(file) as f:
     for row in f:
         red_tile = tuple(map(int, row.strip().split(",")))
         red_tiles.append(red_tile)
+
+red_tiles = np.genfromtxt(file, dtype=int, delimiter=",")
 
 # Gets the largest possible rectangle from the tiles provided
 area = largestRectangle(red_tiles)
