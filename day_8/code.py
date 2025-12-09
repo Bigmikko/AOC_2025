@@ -7,7 +7,7 @@ TEST_INPUT_FILE = "day_8/test_input.txt"
 INPUT_FILE = "day_8/input.txt"
 
 # Switch between test input and the problem parts
-PART2 = False
+PART2 = True
 TEST_INPUT = False
 
 # Some vector math for creating the distances between 2 vectors, v1 and v2
@@ -35,6 +35,25 @@ def getJunctionBoxesVectors(junction_boxes):
     junction_vectors.sort()
     return junction_vectors
 
+# A function that merges the circuits where box1 and box2 respectivly presides
+def _adjustCircuits(box1, box2, circuits):
+    for j in range(len(circuits)):
+
+        # For the first box in vectors[i], it goes through the circuits until it finds the correspondig circuit. If both boxes exists, skip
+        if box1 in circuits[j] and box2 in circuits[j]:
+            break
+        else:
+            if box1 in circuits[j]:
+                for k in range(len(circuits)):
+                    # Appends the circuit where box2 exists to the circuit where box is
+                    if box2 in circuits[k]:
+                        for c in circuits[k]:
+                            circuits[j].append(c)
+                        # Removes the old box2 circuit
+                        circuits.pop(k)
+                        break
+                break
+
 def getCircuits(boxes, vectors):
     circuits = []
 
@@ -42,32 +61,28 @@ def getCircuits(boxes, vectors):
     for box in boxes:
         circuits.append([box])
 
-    # Loops through the amount of circuits it will try and create
-    for i in range(AMOUNT_OF_INDIVIDUAL_CIRCUITS):
+    if not PART2:
+        # Tries to only make the specified amount of circuits, if one already has both boxes (vectors[i][1] and vectors[i][2]) then it's skipped but (i) still advances
+        for i in range(AMOUNT_OF_INDIVIDUAL_CIRCUITS):
+            _adjustCircuits(vectors[i][1], vectors[i][2], circuits)
 
-        # For readability, they are renamed box1 and box2, it's sorted, with the first being the shortest distance and then ascending
-        box1 = vectors[i][1]
-        box2 = vectors[i][2]
+        # Orders the circuit by length descending
+        circuits.sort(key=len, reverse=True)
 
-        # For the first box in vectors[i], it goes through the circuits until it finds the correspondig circuit. If both boxes exists, skip
-        for j in range(len(circuits)):
-            if box1 in circuits[j] and box2 in circuits[j]:
-                break
-            else:
-                if box1 in circuits[j]:
-                    for k in range(len(circuits)):
-                        # Appends the circuit where box2 exists to the circuit where box is
-                        if box2 in circuits[k]:
-                            for c in circuits[k]:
-                                circuits[j].append(c)
-                            # Removes the old box2 circuit
-                            circuits.pop(k)
-                            break
-                    break
-    # Orders the circuit by length descending
-    circuits.sort(key=len, reverse=True)
-    # Returns product of the 3 largest circuit sizes
-    return len(circuits[0]) * len(circuits[1]) * len(circuits[2])
+        # The product is the top 3 sizes of circuits
+        product = len(circuits[0]) * len(circuits[1]) * len(circuits[2])
+
+    else:
+        # This loop is ugly, it keeps going until there is only 1 big circuit
+        i = -1
+        while len(circuits) > 1:
+            i += 1
+            _adjustCircuits(vectors[i][1], vectors[i][2], circuits)
+        
+        # The product is the last two x values multiplied together
+        product = vectors[i][1][0] * vectors[i][2][0]
+
+    return product
 
 # Main function starts here
 
@@ -83,7 +98,6 @@ if TEST_INPUT == True:
 else:
     file = INPUT_FILE
 
-#
 junction_boxes = []
 
 # Saves each junction box location as a list of 3 variables (x, y, z) in a list called junction_boxes
