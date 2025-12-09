@@ -31,7 +31,7 @@ def largestRectangle(tiles):
             if(area > possible_tiles[0]):
                 possible_tiles = (area, tiles[i], tiles[j])
 
-    return possible_tiles
+    return possible_tiles[0]
 
 
 # Main function starts here
