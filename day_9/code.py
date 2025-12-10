@@ -12,7 +12,7 @@ INPUT_FILE = "day_9/input.txt"
 
 # Switch between test input and the problem parts
 PART2 = True
-TEST_INPUT = False
+TEST_INPUT = True
 
 # A function that takes 2 points and calculates the area between the two points 
 # adds one to each line since a point counts as a 1x1 tile
@@ -319,18 +319,25 @@ def _checkRectangleAllowed(rectangle, shapes):
         small_y = rectangle[1][1]
 
     for i in range(len(shapes[0]) - 1):
+
         if shapes[0][i][0] == shapes[0][i + 1][0]:
             if shapes[0][i][0] in range(small_x + 1, large_x):
-                return False
+                if shapes[0][i][1] < shapes[0][i + 1][1]:
+                    if shapes[0][i][1] < small_y + 1 <= shapes[0][i + 1][1] or shapes[0][i][1] <= large_y < shapes[0][i + 1][1]:
+                        return False
+                elif shapes[0][i + 1][1] < small_y + 1 <= shapes[0][i][1] or shapes[0][i + 1][1] <= large_y < shapes[0][i][1]:
+                    return False
         if shapes[0][i][1] == shapes[0][i + 1][1]:
             if shapes[0][i][1] in range(small_y + 1, large_y):
-                return False
+                if shapes[0][i][0] < shapes[0][i + 1][0]:
+                    if shapes[0][i][0] < small_x + 1 <= shapes[0][i + 1][0] or shapes[0][i][0] <= large_x < shapes[0][i + 1][0]:
+                        return False
+                elif shapes[0][i + 1][0] < small_x + 1 <= shapes[0][i][0] or shapes[0][i + 1][0] <= large_x < shapes[0][i][0]:
+                    return False
             
-    for i in range(rectangle[0]):
-        for i in range(small_x, large_x + 1):
-            x = 0
 
     return True
+
 
 def _addNextTile(tiles, shape):
     for i in range(len(tiles)):
@@ -378,8 +385,11 @@ def largestRectangle(tiles):
     rectangles.sort(reverse = True)
 
     if PART2:
+        i = 1
         shapes = _getAllowedShapes(tiles)
         for rectangle in rectangles:
+            print(f"Checking {i}/{len(rectangles)}")
+            i += 1
             if _checkRectangleAllowed(rectangle, shapes):
                 print(rectangle)
                 return rectangle
