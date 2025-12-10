@@ -272,7 +272,6 @@ def _createShapes(allowed_positions):
     print("Shapes done")
     return shapes
 
-
 def _createAllowedList(tiles):
 
     largest_x = -1
@@ -303,53 +302,89 @@ def _createAllowedList(tiles):
 
     return shapes
 
-def _checkRectangleAllowed(p1, p2, grid):
-    p3 = p1[1], p2[0]
-    p4 = p2[1], p1[0]
+def _checkRectangleAllowed(rectangle, shapes):
 
-    """for i in range(len(allowed_tiles)):
-        if p3[0] == allowed_tiles[i][0]:
-            if p3[1] in range(allowed_tiles[i][1], allowed_tiles[i][2] + 1):
-                for j in range(len(allowed_tiles)):
-                    if p4[0] == allowed_tiles[j][0]:
-                        if p4[1] in range(allowed_tiles[j][1], allowed_tiles[j][2] + 1):
-                            return True
-                        
-    return False """
-    
-    if grid[p3] not in (".") and grid[p4] not in ("."):
-        return True
+    if rectangle[1][0] >= rectangle[2][0]:
+        large_x = rectangle[1][0]
+        small_x = rectangle[2][0]
     else:
-        return False
+        large_x = rectangle[2][0]
+        small_x = rectangle[1][0]
 
+    if rectangle[1][1] >= rectangle[2][1]:
+        large_y = rectangle[1][1]
+        small_y = rectangle[2][1]
+    else:
+        large_y = rectangle[2][1]
+        small_y = rectangle[1][1]
+
+    for i in range(len(shapes[0]) - 1):
+        if shapes[0][i][0] == shapes[0][i + 1][0]:
+            if shapes[0][i][0] in range(small_x + 1, large_x):
+                return False
+        if shapes[0][i][1] == shapes[0][i + 1][1]:
+            if shapes[0][i][1] in range(small_y + 1, large_y):
+                return False
+            
+    for i in range(rectangle[0]):
+        for i in range(small_x, large_x + 1):
+            x = 0
+
+    return True
+
+def _addNextTile(tiles, shape):
+    for i in range(len(tiles)):
+        if shape[-1][1] == tiles[i][1] or shape[-1][0] == tiles[i][0]:
+            shape.append(tiles[i])
+            tiles.pop(i)
+            return True
+    return False
+
+def _getAllowedShapes(tiles):
+
+    shapes = []
+
+    not_found_tiles = tiles.copy()
+
+    while(len(not_found_tiles) > 0):
+        current_shape = []
+        current_shape.append(not_found_tiles[0])
+        not_found_tiles.pop(0)
+        new_tiles_found = True
+        while(new_tiles_found):
+            new_tiles_found = _addNextTile(not_found_tiles, current_shape)
+        shapes.append(current_shape)
+
+    return shapes
 
 # A function that takes the position of 1x1 tiles and checks the largest rectangle possible out of the points in the tiles positions
 def largestRectangle(tiles):
 
     # Saves the current largest area and tiles in possible_tiles (area, tile1, tile2)
-    possible_tiles = [-1, -1, -1]
+    rectangles = []
     #allowed_tiles = _createAllowedTiles(tiles)
     #grid = _createAllowedGrid(tiles)
-    allowed_positions = _createAllowedList(tiles)
-    print(allowed_positions)
-
+    #allowed_ranges = _createRanges(shapes)
+    #print(allowed_ranges)
+    #print(f"Amount of shapes: {shapes}")
     # Loops through all tiles and compares them to all other tiles to get the largest area possible
     for i in range(len(tiles)):
         for j in range(i + 1, len(tiles)):
- 
-            if PART2:
-                #rectangle_allowed = _checkRectangleAllowed(tiles[i], tiles[j], grid)
-                x = 0
-
-                """ if not rectangle_allowed:
-                    break """
-                        
             # Get the area from the _getArea() function, if it's bigger than the current largest area, save the new one in possible_tiles
             area = _getArea(tiles[i], tiles[j])
-            if(area > possible_tiles[0]):
-                possible_tiles = (area, tiles[i], tiles[j])
+            rectangle = (area, tiles[i], tiles[j])
+            rectangles.append(rectangle)
 
-    return possible_tiles[0]
+    rectangles.sort(reverse = True)
+
+    if PART2:
+        shapes = _getAllowedShapes(tiles)
+        for rectangle in rectangles:
+            if _checkRectangleAllowed(rectangle, shapes):
+                print(rectangle)
+                return rectangle
+
+    return rectangles[0][0]
 
 
 # Main function starts here
