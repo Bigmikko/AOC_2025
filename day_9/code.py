@@ -12,7 +12,7 @@ INPUT_FILE = "day_9/input.txt"
 
 # Switch between test input and the problem parts
 PART2 = True
-TEST_INPUT = True
+TEST_INPUT = False
 
 # A function that takes 2 points and calculates the area between the two points 
 # adds one to each line since a point counts as a 1x1 tile
@@ -218,39 +218,58 @@ def _createRanges(allowed_positions):
 
 def _createShapes(allowed_positions):
     shapes = []
+    amount_of_shapes = 0
     current_shape = []
-    pos_not_found = []
-
+    print("Making shapes")
     for i in range(len(allowed_positions)):
-        if i == 0:
+        if len(current_shape) == 0:
+            amount_of_shapes += 1
             current_shape.append(allowed_positions[i])
-        
-        else:
-            is_found_in_current_shape = False
-            for j in range(len(current_shape)):
-                if allowed_positions[i][0] == current_shape[j][0] or allowed_positions[i][1] == current_shape[j][1]:
-                    current_shape.append(allowed_positions[i])
-                    is_found_in_current_shape = True
+        elif amount_of_shapes > 0:
+            is_pos_found = False
+            for j in range(len(shapes)):
+                for k in range(len(shapes[j])):
+                    if allowed_positions[i][0] == shapes[j][k][0] or allowed_positions[i][1] == shapes[j][k][1]:
+                        for pos in current_shape:
+                            shapes[j].append(pos)
+                        current_shape = []
+                        amount_of_shapes -= 1
+                        is_pos_found = True
+                        break
+
+                if is_pos_found:
+                        break
+            if not is_pos_found:
+                shapes.append(current_shape)
+                current_shape = []
+    i = 0
+    print("Making shapes complete")
+    while(True):
+        temp_shape = 0
+        if i >= len(shapes) - 1:
+            break
+
+        for j in range(len(shapes[i])):
+            for k in range(i + 1, len(shapes)):
+                for l in range(len(shapes[k])):
+                    if shapes[i][j][0] == shapes[k][l][0] or shapes[i][j][1] == shapes[k][l][1]:
+                        temp_shape = shapes[i] + shapes[k]
+                        shapes.pop(k)
+                        shapes.pop(i)
+                        shapes.append(temp_shape)
+                        break
+                if temp_shape != 0:
                     break
+            if temp_shape != 0:
+                    break
+        if temp_shape == 0 and i >= len(shapes) - 1:
+            break
+        elif temp_shape != 0:
+            i = 0
 
-            if not is_found_in_current_shape:
-                if len(shapes) == 0:
-                    shapes.append(current_shape)
-                    current_shape = []
-                else:
-                    for j in range(len(shapes)):
-                        for k in range(len(shapes[j])):
-                            if allowed_positions[i][0] == shapes[j][k][0] or allowed_positions[i][1] == shapes[j][k][1]:
-                                for k in range(len(shapes[j])):
-                                    current_shape.append(shapes[j][k])
-                                shapes.pop(j)
-                                shapes.append(current_shape)
-                                current_shape = []
-                                break
-
-                            elif j == len(shapes) - 1:
-                                shapes.append(current_shape)
-                                current_shape = []
+        else:
+            i += 1
+    print("Shapes done")
     return shapes
 
 
@@ -271,13 +290,16 @@ def _createAllowedList(tiles):
         allowed_positions.append(tile)
 
     for tile in tiles:
+        print(f"Green Tiles")
         _checkAndAddGreenTiles(tile, allowed_positions, largest_x, largest_y)
 
+    print(f"Sort and remove duplicates")
     # Remove duplicates
     _sortAndRemoveDuplicates(allowed_positions)
 
     shapes = _createShapes(allowed_positions)
 
+    print(len(shapes))
 
     return shapes
 
