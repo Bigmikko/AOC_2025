@@ -171,8 +171,88 @@ def _checkAndAddGreenTiles(tile, allowed_positions, largest_x, largest_y):
             for j in range(tile[0] + 1, largest_x + 1):
                 if (j, tile[1]) in allowed_positions:
                     for k in range(j - 1, tile[0], -1):
-                        allowed_positions.append((j, tile[1]))
-            
+                        allowed_positions.append((k, tile[1]))
+
+            for j in range(tile[1] + 1, largest_y + 1):
+                if (tile[0], j) in allowed_positions:
+                    for k in range(j - 1, tile[1], -1):
+                        allowed_positions.append((tile[0], k))
+
+def _sortAndRemoveDuplicates(allowed_positions):
+    allowed_positions.sort()
+    i = 0
+    while(True):
+        if i >= len(allowed_positions) - 1:
+            break
+        if allowed_positions[i] == allowed_positions[i + 1]:
+            allowed_positions.pop(i)
+            i -= 1
+        i += 1
+
+def _createRanges(allowed_positions):
+    allowed_range = []
+    current_range = []
+
+    current_row = -1
+
+    for i in range(len(allowed_positions)):
+
+        if current_row < 0:
+            current_row = allowed_positions[i][0]
+            start_col = allowed_positions[i][1]
+
+        elif current_row != allowed_positions[i][0]:
+            current_range.append(current_row)
+            current_range.append(range(start_col, allowed_positions[i - 1][1]))
+            allowed_range.append(current_range)
+            current_range = []
+            current_row = allowed_positions[i][0]
+            start_col = allowed_positions[i][1]
+
+        elif i == len(allowed_positions) - 1:
+            current_range.append(current_row)
+            current_range.append(range(start_col, allowed_positions[i][1]))
+            allowed_range.append(current_range)
+
+    return allowed_range
+
+def _createShapes(allowed_positions):
+    shapes = []
+    current_shape = []
+    pos_not_found = []
+
+    for i in range(len(allowed_positions)):
+        if i == 0:
+            current_shape.append(allowed_positions[i])
+        
+        else:
+            is_found_in_current_shape = False
+            for j in range(len(current_shape)):
+                if allowed_positions[i][0] == current_shape[j][0] or allowed_positions[i][1] == current_shape[j][1]:
+                    current_shape.append(allowed_positions[i])
+                    is_found_in_current_shape = True
+                    break
+
+            if not is_found_in_current_shape:
+                if len(shapes) == 0:
+                    shapes.append(current_shape)
+                    current_shape = []
+                else:
+                    for j in range(len(shapes)):
+                        for k in range(len(shapes[j])):
+                            if allowed_positions[i][0] == shapes[j][k][0] or allowed_positions[i][1] == shapes[j][k][1]:
+                                for k in range(len(shapes[j])):
+                                    current_shape.append(shapes[j][k])
+                                shapes.pop(j)
+                                shapes.append(current_shape)
+                                current_shape = []
+                                break
+
+                            elif j == len(shapes) - 1:
+                                shapes.append(current_shape)
+                                current_shape = []
+    return shapes
+
 
 def _createAllowedList(tiles):
 
@@ -192,9 +272,14 @@ def _createAllowedList(tiles):
 
     for tile in tiles:
         _checkAndAddGreenTiles(tile, allowed_positions, largest_x, largest_y)
-    allowed_positions.sort()
 
-    return allowed_positions
+    # Remove duplicates
+    _sortAndRemoveDuplicates(allowed_positions)
+
+    shapes = _createShapes(allowed_positions)
+
+
+    return shapes
 
 def _checkRectangleAllowed(p1, p2, grid):
     p3 = p1[1], p2[0]
