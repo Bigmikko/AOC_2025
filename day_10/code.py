@@ -7,8 +7,8 @@ TEST_INPUT_FILE = "day_10/test_input.txt"
 INPUT_FILE = "day_10/input.txt"
 
 # Switch between test input and the problem parts
-PART2 = False
-TEST_INPUT = False
+PART2 = True
+TEST_INPUT = True
 
 # A function that cleans up the machines information, removes [] {} and makes a list of the switches
 def parseMachines(machines):
@@ -18,7 +18,7 @@ def parseMachines(machines):
     for machine in machines:
         new_machine = []
         machine_lights = list(machine[0].replace("[", "").replace("]", ""))
-        joltange_requirements = machine[-1].replace("{", "").replace("}", "")
+        joltage_requirements = list(machine[-1].replace("{", "").replace("}", "").split(","))
         switches = []
         
         for i in range(1, len(machine) - 1):
@@ -30,8 +30,10 @@ def parseMachines(machines):
             switch = list(map(int, switches[i].split(",")))
             list_of_switches.append(switch)
 
+        list_of_switches = sorted(list_of_switches, key=len, reverse=True)
+
         new_machine.append(machine_lights)
-        new_machine.append(joltange_requirements)
+        new_machine.append(joltage_requirements)
         new_machine.append(list_of_switches)
 
         new_machines.append(new_machine)
@@ -43,12 +45,15 @@ def _pressButton(button, lights):
     
     # Switches the buttons correspondig lights
     for i in range(len(button)):
-
+        print(lights.type())
         if lights[button[i]] == ".":
             lights[button[i]] = "#"
 
         elif lights[button[i]] == "#":
             lights[button[i]] = "."
+    
+        elif lights[button[i]] in range(10000):
+            lights[button[i]] -= 1
 
 # A function that takes a machine and a test and runs the test, if no combination of pressing buttons work, returns 1M, else returns the button presses
 # A test is a for example 1 0 1, which means pressing the first and last buttons to change those lights
@@ -97,19 +102,45 @@ def _generateListOfTests(amount):
         tests.append(test)
     return tests      
 
+def _recursiveJoltageCalculator(joltage, buttons):
+
+    current_joltage = joltage.copy()
+
+    for i in range(len(current_joltage)):
+        if current_joltage[i] < 0:
+            return 1000000
+        
+        if current_joltage[i] != 0:
+            break
+    
+        elif i == len(current_joltage) - 1:
+            return 0
+        
+    for i in range(len(buttons)):
+        _pressButton(buttons[i], current_joltage)
+
+    print(current_joltage)
+    #button_presses += _recursiveJoltageCalculator(joltage, buttons)
+
+    return 0 #button_presses
+
 # A function that takes a machine and calculates and returns the fewest amount of button presses needed to achieve that machines prefered lighting configuration
 def getFewestButtonPresses(machine):
 
     fewest_button_presses = 100000
 
-    # Generates the tests
-    tests = _generateListOfTests(len(machine[2]))
+    if not PART2:
+        # Generates the tests
+        tests = _generateListOfTests(len(machine[2]))
 
-    # Runs all of the tests, if a test has fewer button presses saves it
-    for i in range(len(tests)):
-        test_results = _runTest(machine, tests[i])
-        if test_results < fewest_button_presses:
-            fewest_button_presses = test_results
+        # Runs all of the tests, if a test has fewer button presses saves it
+        for i in range(len(tests)):
+            test_results = _runTest(machine, tests[i])
+            if test_results < fewest_button_presses:
+                fewest_button_presses = test_results
+ 
+    else:
+        _recursiveJoltageCalculator(machine[1], machine[2])
 
     return fewest_button_presses
 
