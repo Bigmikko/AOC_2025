@@ -1,0 +1,139 @@
+# Advent of Code 2025
+# Day 10
+# Coded by Bigmikko in Python
+
+# The different input file locations
+TEST_INPUT_FILE = "day_10/test_input.txt"
+INPUT_FILE = "day_10/input.txt"
+
+# Switch between test input and the problem parts
+PART2 = False
+TEST_INPUT = False
+
+# A function that cleans up the machines information, removes [] {} and makes a list of the switches
+def parseMachines(machines):
+
+    new_machines = []
+
+    for machine in machines:
+        new_machine = []
+        machine_lights = list(machine[0].replace("[", "").replace("]", ""))
+        joltange_requirements = machine[-1].replace("{", "").replace("}", "")
+        switches = []
+        
+        for i in range(1, len(machine) - 1):
+            switches.append(machine[i].replace(")", "").replace("(", ""))
+
+        list_of_switches = []
+
+        for i in range(len(switches)):
+            switch = list(map(int, switches[i].split(",")))
+            list_of_switches.append(switch)
+
+        new_machine.append(machine_lights)
+        new_machine.append(joltange_requirements)
+        new_machine.append(list_of_switches)
+
+        new_machines.append(new_machine)
+
+    return new_machines
+
+# A function that takes the lights and 1 button press. It then returns the results of pressing that button
+def _pressButton(button, lights):
+    
+    # Switches the buttons correspondig lights
+    for i in range(len(button)):
+
+        if lights[button[i]] == ".":
+            lights[button[i]] = "#"
+
+        elif lights[button[i]] == "#":
+            lights[button[i]] = "."
+
+# A function that takes a machine and a test and runs the test, if no combination of pressing buttons work, returns 1M, else returns the button presses
+# A test is a for example 1 0 1, which means pressing the first and last buttons to change those lights
+def _runTest(machine, test):
+
+    lights = []
+
+    # Makes a lights list with len(machine lights) and sets them all to off (".")
+    for i in range(len(machine[0])):
+        lights.append(".")
+
+    button_presses = 0
+
+    # Using the test, presses the button correspondig to a "1"
+    for i in range(len(test)):
+        if test[i] == 1:
+            _pressButton(machine[2][i], lights)
+            button_presses += 1
+
+    # If the lights are in the prefered lights configuration, return the amount of button presses needed
+    if lights == machine[0]:
+        return button_presses
+
+    else:
+        return 1000000
+
+# A function that takes an amount and creates a list of all of the binary numbers with size "amount", 2 for be [0 0, 0 1, 1 0, 1 1]
+def _generateListOfTests(amount):
+    tests = []
+
+    # The list has to be length 2^amount
+    for i in range(2 ** amount):
+        test = []
+        
+        # The binary equivelent of i
+        binary_number = "{0:b}".format(i)
+
+        # Fills the start of the test with "0" so the length will be len(amount)
+        for j in range(amount - len(binary_number)):
+            test.append(0)
+        
+        # Adds the binary number at the end
+        for j in range(len(binary_number)):
+            test.append(int(binary_number[j]))
+
+        tests.append(test)
+    return tests      
+
+# A function that takes a machine and calculates and returns the fewest amount of button presses needed to achieve that machines prefered lighting configuration
+def getFewestButtonPresses(machine):
+
+    fewest_button_presses = 100000
+
+    # Generates the tests
+    tests = _generateListOfTests(len(machine[2]))
+
+    # Runs all of the tests, if a test has fewer button presses saves it
+    for i in range(len(tests)):
+        test_results = _runTest(machine, tests[i])
+        if test_results < fewest_button_presses:
+            fewest_button_presses = test_results
+
+    return fewest_button_presses
+
+# Main function starts here
+
+# Switches between the test and normal inputs
+if TEST_INPUT == True:
+    file = TEST_INPUT_FILE
+else:
+    file = INPUT_FILE
+
+machines = []
+
+# Saves each row in a list of a red tiles (x, y)
+with open(file) as f:
+    for row in f:
+        machine = row.strip().split(" ")
+        machines.append(machine)
+
+machines = parseMachines(machines)
+
+sum = 0
+
+for machine in machines:
+    sum += getFewestButtonPresses(machine)
+
+print(sum)
