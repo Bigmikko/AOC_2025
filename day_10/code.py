@@ -18,7 +18,7 @@ def parseMachines(machines):
     for machine in machines:
         new_machine = []
         machine_lights = list(machine[0].replace("[", "").replace("]", ""))
-        joltage_requirements = list(machine[-1].replace("{", "").replace("}", "").split(","))
+        joltage_requirements = list(map(int,machine[-1].replace("{", "").replace("}", "").split(",")))
         switches = []
         
         for i in range(1, len(machine) - 1):
@@ -42,18 +42,19 @@ def parseMachines(machines):
 
 # A function that takes the lights and 1 button press. It then returns the results of pressing that button
 def _pressButton(button, lights):
-    
+         
     # Switches the buttons correspondig lights
     for i in range(len(button)):
-        print(lights.type())
-        if lights[button[i]] == ".":
-            lights[button[i]] = "#"
-
-        elif lights[button[i]] == "#":
-            lights[button[i]] = "."
-    
-        elif lights[button[i]] in range(10000):
+        if PART2:
             lights[button[i]] -= 1
+
+        else:       
+            if lights[button[i]] == ".":
+                lights[button[i]] = "#"
+
+            elif lights[button[i]] == "#":
+                lights[button[i]] = "."
+
 
 # A function that takes a machine and a test and runs the test, if no combination of pressing buttons work, returns 1M, else returns the button presses
 # A test is a for example 1 0 1, which means pressing the first and last buttons to change those lights
@@ -105,24 +106,31 @@ def _generateListOfTests(amount):
 def _recursiveJoltageCalculator(joltage, buttons):
 
     current_joltage = joltage.copy()
+    button_presses = 0
 
     for i in range(len(current_joltage)):
         if current_joltage[i] < 0:
             return 1000000
         
+    for i in range(len(current_joltage)):    
         if current_joltage[i] != 0:
             break
     
         elif i == len(current_joltage) - 1:
-            return 0
+            return button_presses
         
     for i in range(len(buttons)):
-        _pressButton(buttons[i], current_joltage)
+        
+        test_joltage = current_joltage.copy()
+        _pressButton(buttons[i], test_joltage)
+        test = _recursiveJoltageCalculator(test_joltage, buttons)
+        if test < 1000000:
+            return test + 1
 
-    print(current_joltage)
+
     #button_presses += _recursiveJoltageCalculator(joltage, buttons)
 
-    return 0 #button_presses
+    return 1000000
 
 # A function that takes a machine and calculates and returns the fewest amount of button presses needed to achieve that machines prefered lighting configuration
 def getFewestButtonPresses(machine):
@@ -140,7 +148,7 @@ def getFewestButtonPresses(machine):
                 fewest_button_presses = test_results
  
     else:
-        _recursiveJoltageCalculator(machine[1], machine[2])
+        fewest_button_presses = _recursiveJoltageCalculator(machine[1], machine[2])
 
     return fewest_button_presses
 
@@ -163,8 +171,11 @@ with open(file) as f:
 machines = parseMachines(machines)
 
 sum = 0
+i = 0
 
 for machine in machines:
+    i += 1
+    print(f"Machine: {i}")
     sum += getFewestButtonPresses(machine)
 
 print(sum)
