@@ -8,7 +8,10 @@ INPUT_FILE = "day_10/input.txt"
 
 # Switch between test input and the problem parts
 PART2 = True
-TEST_INPUT = True
+TEST_INPUT = False
+
+
+ITERATIONS = 0
 
 # A function that cleans up the machines information, removes [] {} and makes a list of the switches
 def parseMachines(machines):
@@ -105,8 +108,8 @@ def _generateListOfTests(amount):
 
 def _recursiveJoltageCalculator(joltage, buttons):
 
+    print(joltage)
     current_joltage = joltage.copy()
-    button_presses = 0
 
     for i in range(len(current_joltage)):
         if current_joltage[i] < 0:
@@ -117,15 +120,42 @@ def _recursiveJoltageCalculator(joltage, buttons):
             break
     
         elif i == len(current_joltage) - 1:
-            return button_presses
+            return 0
         
+    priority_for_test = []
+    for i in range(len(current_joltage)):
+        priority_for_test.append((current_joltage[i], i))
+
+    priority_for_test.sort(reverse=True)
+
+    buttons_test = []
+    buttons_copy = buttons.copy()
+
+    for i in range(len(priority_for_test)):
+        if len(buttons_copy) == 0:
+            break
+        for k in range(len(buttons_copy[0]), 0, -1):
+            for j in range(len(buttons_copy)):
+                if j >= len(buttons_copy):
+                    break
+
+                elif priority_for_test[i][1] in buttons_copy[j] and k == len(buttons_copy[j]):
+                    buttons_test.append(buttons_copy[j])
+                    buttons_copy.pop(j)
+                    j -= 1
+
+
+    x = 0
+
     for i in range(len(buttons)):
-        
+
         test_joltage = current_joltage.copy()
-        _pressButton(buttons[i], test_joltage)
-        test = _recursiveJoltageCalculator(test_joltage, buttons)
+        _pressButton(buttons_test[i], test_joltage)
+        test = _recursiveJoltageCalculator(test_joltage, buttons_test)
         if test < 1000000:
+            ITERATIONS = 0
             return test + 1
+
 
 
     #button_presses += _recursiveJoltageCalculator(joltage, buttons)
